@@ -1,0 +1,20 @@
+motion: motion 3.2.4 (2005-12-22)
+motion:
+motion:   Motion is a software motion detector. Motion is a program that
+motion: monitors the video signal from one or more cameras and is able to
+motion: detect if a significant part of the picture has changed; in other
+motion: words, it can detect motion.
+motion:   The program is written in C and is made for the Linux operating
+motion: system.
+motion:   Motion is a command line based tool whose output can be either
+motion: jpeg, ppm fies or mpeg video sequences.
+motion:   Motion is the perfect tool for keeping an eye on your property,
+motion: keeping only those images that are interesting.
+motion:   Motion is strictly command line driven and can run as a daemon
+motion: with a rather small footprint.
+motion:
+motion: ---
+motion: Packager: Georgi D. Sotirov <gdsotirov@dir.bg>
+motion: Packaged: 2006-01-25 21:35 EET
+motion:
+
