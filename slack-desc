@@ -1,6 +1,6 @@
-motion: motion 3.2.4 (2005-12-22) A software motion detector
+motion: motion - A software motion detector
 motion:
-motion:   Motion is a program that monitors the video signal from one or more
+motion: Motion is a program that monitors the video signal from one or more
 motion: cameras and is able to detect if a significant part of the picture has
 motion: changed; in other words, it can detect motion. Motion is a command
 motion: line based tool whose output can be either jpeg, ppm fies or mpeg
