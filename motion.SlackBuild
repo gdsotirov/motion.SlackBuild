@@ -7,7 +7,7 @@
 . /etc/slack-package.conf
 
 NAME=motion
-VERSION=3.2.6
+VERSION=3.2.7
 BUILD=1
 
 cd $TMP
@@ -46,7 +46,7 @@ cd $PKG_DIR
 md5sum $PKGNAME.tgz > $PKGNAME.tgz.md5
 cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
 
-if [ "$1" == "--clean" ]; then
+if [ "$1" == "--cleanup" ]; then
   rm -r $SRC
   rm -r $PKG
 fi
