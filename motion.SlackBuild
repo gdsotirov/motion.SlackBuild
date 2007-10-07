@@ -7,7 +7,7 @@
 . /etc/slack-package.conf
 
 NAME=motion
-VERSION=3.2.7
+VERSION=3.2.8
 BUILD=1
 
 cd $TMP
@@ -16,28 +16,41 @@ SRC=$TMP/$NAME-$VERSION
 cd $SRC
 fix_source
 
-CFLAGS=$SLKCFLAGS ./configure --prefix=/usr --sysconfdir=/etc
-make
+# Patch ffmpeg.c
+patch -p1 < $CWD/$NAME-$VERSION.diff
+
+CFLAGS=$SLKCFLAGS \
+CXXFLAGS=$SLKCFLAGS \
+./configure --build=$ARCH-slackware-linux \
+            --host=$ARCH-slackware-linux \
+            --prefix=/usr \
+            --sysconfdir=/etc \
+            --mandir=/usr/man
+
+make || exit 1
 
 PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
 make DESTDIR=$PKG install
+mv $PKG/etc/motion-dist.conf $PKG/etc/motion.conf.new
 
-cd $PKG
 bin_perms $PKG
-strip_bin
+( cd $PKG; strip_bin )
+( cd $SRC; create_docs $PKG $NAME-$VERSION )
 gzip_man $PKG
-cd $SRC
-create_docs $PKG $NAME-$VERSION
 
 mkdir -p $PKG/install
-install -m 644 $CWD/slack-desc $PKG/install/slack-desc
+install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
+install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
+
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-required $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/slack-desc          $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/slack-required      $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/doinst.sh           $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/$NAME-$VERSION.diff $PKG/usr/src/slackbuilds/$NAME-$VERSION.diff
+install -m 644 $CWD/$NAME.SlackBuild    $PKG/usr/src/slackbuilds/$NAME-$VERSION
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
