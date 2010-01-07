@@ -4,20 +4,41 @@
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
 #
 
-. /etc/slack-package.conf
+. ../slack-package.conf
 
 NAME=motion
-VERSION=3.2.8
+VERSION=3.2.11.1
+ARCH=${ARCH:-i486}
 BUILD=1
 
-cd $TMP
-tar -zxvf $CWD/$NAME-$VERSION.tar.gz
+TMP=${TMP:-/tmp}
+CWD=${CWD:-`pwd`}
+PKG_DIR=${PKG_DIR:-/tmp}
+
+if [ ! -e $TMP ]; then
+  mkdir -p $TMP # location to build the source
+fi
+
 SRC=$TMP/$NAME-$VERSION
+if [ -e $SRC -a -d $SRC ]; then
+  echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
+  exit 1
+fi
+
+PKG=$TMP/package-$NAME
+if [ -e $PKG -a -d $PKG ]; then
+  echo "Package creation directory '$PKG' already exists! Please, move it or remove it."
+  exit 2
+fi
+mkdir -p $PKG
+
+# Extract and fix source
+cd $TMP
+tar xvf $CWD/$NAME-$VERSION.tar.gz
 cd $SRC
 fix_source
 
-# Patch ffmpeg.c
-patch -p1 < $CWD/$NAME-$VERSION.diff
+# Apply patches
 
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
@@ -25,40 +46,43 @@ CXXFLAGS=$SLKCFLAGS \
             --host=$ARCH-slackware-linux \
             --prefix=/usr \
             --sysconfdir=/etc \
-            --mandir=/usr/man
+            --mandir=/usr/man || exit 1
 
-make || exit 1
-
-PKG="$TMP/package-$NAME"
-mkdir -p $PKG
-
-make DESTDIR=$PKG install
+# Build & install
+make -j4 || exit 2
+make DESTDIR=$PKG install || exit 3
 mv $PKG/etc/motion-dist.conf $PKG/etc/motion.conf.new
 
+# Prepare
 bin_perms $PKG
 ( cd $PKG; strip_bin )
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
+mv $PKG/usr/share/doc/$NAME-$VERSION/motion_guide.html $PKG/usr/doc/$NAME-$VERSION/motion_guide.html
+rm -rf $PKG/usr/share/doc
 gzip_man $PKG
 
 mkdir -p $PKG/install
+install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
 install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
-install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
+install -m 644 $CWD/slack-suggests $PKG/install/slack-suggests
 
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc          $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-required      $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/doinst.sh           $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME-$VERSION.diff $PKG/usr/src/slackbuilds/$NAME-$VERSION.diff
-install -m 644 $CWD/$NAME.SlackBuild    $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION/doinst.sh
+install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-desc
+install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-required
+install -m 644 $CWD/slack-suggests   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-suggests
+install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NAME.SlackBuild
 
+# Pack
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
-makepkg -l y -c n $PKG_DIR/$PKGNAME.tgz
+makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
 cd $PKG_DIR
-md5sum $PKGNAME.tgz > $PKGNAME.tgz.md5
+md5sum $PKGNAME.txz > $PKGNAME.txz.md5
 cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
 
+# Clean up (optionally)
 if [ "$1" == "--cleanup" ]; then
   rm -r $SRC
   rm -r $PKG
