@@ -14,6 +14,7 @@ libogg >= 1.1.3
 libtheora >= 1.0
 libvorbis >= 1.2.0
 libxcb >= 1.3
+mysql >= 5.0
 openssl >= 0.9.8k | openssl-solibs >= 0.9.8k
 speex >= 1.2rc1
 x264
