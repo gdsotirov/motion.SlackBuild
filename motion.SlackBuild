@@ -2,18 +2,18 @@
 #
 # SlackBuild for motion
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
+# Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
 . ../slack-package.conf
 
 NAME=motion
-VERSION=3.2.11.1
+VERSION=3.2.12
 ARCH=${ARCH:-i486}
-BUILD=2
+BUILD=${BUILD:-1}
 
 TMP=${TMP:-/tmp}
 CWD=${CWD:-`pwd`}
-PKG_DIR=${PKG_DIR:-/tmp}
 
 if [ ! -e $TMP ]; then
   mkdir -p $TMP # location to build the source
@@ -34,31 +34,34 @@ mkdir -p $PKG
 
 # Extract and fix source
 cd $TMP
-tar xvf $CWD/$NAME-$VERSION.tar.gz
+tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 1
 cd $SRC
 fix_source
 
 # Apply patches
 
+# Configure
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
 ./configure --build=$ARCH-slackware-linux \
             --host=$ARCH-slackware-linux \
             --prefix=/usr \
             --sysconfdir=/etc \
-            --mandir=/usr/man || exit 1
+            --mandir=/usr/man || exit 2
 
 # Build & install
-make -j4 || exit 2
-make DESTDIR=$PKG install || exit 3
+make -j4 || exit 3
+make DESTDIR=$PKG \
+     docdir=/usr/doc/$NAME-$VERSION \
+     examplesdir=/usr/doc/$NAME-$VERSION/examples \
+     install || exit 4
+
 mv $PKG/etc/motion-dist.conf $PKG/etc/motion.conf.new
 
 # Prepare
 bin_perms $PKG
 ( cd $PKG; strip_bin )
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
-mv $PKG/usr/share/doc/$NAME-$VERSION/motion_guide.html $PKG/usr/doc/$NAME-$VERSION/motion_guide.html
-rm -rf $PKG/usr/share/doc
 gzip_man $PKG
 
 mkdir -p $PKG/install
@@ -72,7 +75,7 @@ install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION/sla
 install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-required
 install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NAME.SlackBuild
 
-# Pack
+# Assemble
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
 makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
