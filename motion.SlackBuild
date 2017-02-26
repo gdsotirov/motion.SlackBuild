@@ -1,11 +1,28 @@
 #!/bin/sh
 #
-# SlackBuild for motion
-# Written by Georgi D. Sotirov <gdsotirov@dir.bg>
+# Slackware build script for Motion
+# Copyright (C) 2006-2017 Georgi D. Sotirov <gdsotirov@dir.bg>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
+# $Id: motion.SlackBuild,v 1.7 2017/02/26 17:28:07 gsotirov Exp $
+#
 
-. ../slack-package.conf
+. ../../slack-package.conf
 
 NAME=motion
 VERSION=3.2.12
@@ -34,11 +51,14 @@ mkdir -p $PKG
 
 # Extract and fix source
 cd $TMP
-tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 1
+tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 3
 cd $SRC
 fix_source
 
-# Apply patches
+# Apply patch (if any)
+if [ -e $CWD/$NAME-$VERSION.diff ]; then
+  patch -p1 -b -z.orig < $CWD/$NAME-$VERSION.diff || exit 4
+fi
 
 # Configure
 CFLAGS=$SLKCFLAGS \
@@ -47,14 +67,14 @@ CXXFLAGS=$SLKCFLAGS \
             --host=$ARCH-slackware-linux \
             --prefix=/usr \
             --sysconfdir=/etc \
-            --mandir=/usr/man || exit 2
+            --mandir=/usr/man || exit 5
 
 # Build & install
-make -j4 || exit 3
+make -j4 || exit 6
 make DESTDIR=$PKG \
      docdir=/usr/doc/$NAME-$VERSION \
      examplesdir=/usr/doc/$NAME-$VERSION/examples \
-     install || exit 4
+     install || exit 7
 
 mv $PKG/etc/motion-dist.conf $PKG/etc/motion.conf.new
 
@@ -69,11 +89,15 @@ install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
 install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
 
-mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION/doinst.sh
-install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-desc
-install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-required
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NAME.SlackBuild
+SBDIR=$PKG/usr/src/slackbuilds/$NAME-$VERSION
+mkdir -p $SBDIR
+install -m 644 $CWD/doinst.sh        $SBDIR/doinst.sh
+install -m 644 $CWD/slack-desc       $SBDIR/slack-desc
+install -m 644 $CWD/slack-required   $SBDIR/slack-required
+if [ -e $CWD/$NAME-$VERSION.diff ]; then
+  install -m 644 $CWD/$NAME-$VERSION.diff $SBDIR/$NAME-$VERSION.diff
+fi
+install -m 644 $CWD/$NAME.SlackBuild $SBDIR/$NAME.SlackBuild
 
 # Assemble
 cd $PKG
