@@ -19,15 +19,14 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: motion.SlackBuild,v 1.9 2017/02/26 18:04:53 gsotirov Exp $
+# $Id: motion.SlackBuild,v 1.10 2017/02/26 20:46:56 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=motion
-VERSION=3.4.1
-VERSION_FULL="${VERSION}rc01"
-ARCH=${ARCH:-i486}
+VERSION=4.0.1
+ARCH=${ARCH:-i586}
 BUILD=${BUILD:-1}
 
 TMP=${TMP:-/tmp}
@@ -37,13 +36,13 @@ if [ ! -e $TMP ]; then
   mkdir -p $TMP # location to build the source
 fi
 
-SRC=$TMP/$NAME-release-$VERSION
+SRC=$TMP/${NAME}-release-${VERSION}
 if [ -e $SRC -a -d $SRC ]; then
   echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
   exit 1
 fi
 
-PKG=$TMP/package-$NAME
+PKG=$TMP/package-${NAME}
 if [ -e $PKG -a -d $PKG ]; then
   echo "Package creation directory '$PKG' already exists! Please, move it or remove it."
   exit 2
@@ -52,32 +51,32 @@ mkdir -p $PKG
 
 # Extract and fix source
 cd $TMP
-tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 3
+tar -xvf $CWD/${NAME}-${VERSION}.tar.gz || exit 3
 cd $SRC
 fix_source
 
 # Apply patch (if any)
-if [ -e $CWD/$NAME-$VERSION.diff ]; then
-  patch -p1 -b -z.orig < $CWD/$NAME-$VERSION.diff || exit 4
+if [ -e $CWD/${NAME}-${VERSION}.diff ]; then
+  patch -p1 -b -z.orig < $CWD/${NAME}-${VERSION}.diff || exit 4
 fi
 
 # Configure
 autoreconf -vif . || exit 51
-CFLAGS=$SLKCFLAGS \
-CXXFLAGS=$SLKCFLAGS \
-./configure --build=$ARCH-slackware-linux \
-            --host=$ARCH-slackware-linux \
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+./configure --build=${ARCH}-slackware-linux \
+            --host=${ARCH}-slackware-linux \
             --prefix=/usr \
             --sysconfdir=/etc \
-            --docdir=/usr/doc/$NAME-$VERSION \
-            --datarootdir=/usr/doc/$NAME-$VERSION \
+            --docdir=/usr/doc/${NAME}-${VERSION} \
+            --datarootdir=/usr/doc/${NAME}-${VERSION} \
             --mandir=/usr/man || exit 5
 
 # Build & install
 make -j4 || exit 6
 make DESTDIR=$PKG \
-     docdir=/usr/doc/$NAME-$VERSION \
-     examplesdir=/usr/doc/$NAME-$VERSION/examples \
+     docdir=/usr/doc/${NAME}-${VERSION} \
+     examplesdir=/usr/doc/${NAME}-${VERSION}/examples \
      install || exit 7
 
 mv $PKG/etc/motion/motion-dist.conf $PKG/etc/motion/motion.conf.new
@@ -85,7 +84,7 @@ mv $PKG/etc/motion/motion-dist.conf $PKG/etc/motion/motion.conf.new
 # Prepare
 bin_perms $PKG
 ( cd $PKG; strip_bin )
-( cd $SRC; create_docs $PKG $NAME-$VERSION )
+( cd $SRC; create_docs $PKG ${NAME}-${VERSION} )
 gzip_man $PKG
 
 mkdir -p $PKG/install
@@ -93,23 +92,23 @@ install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
 install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
 
-SBDIR=$PKG/usr/src/slackbuilds/$NAME-$VERSION
+SBDIR=$PKG/usr/src/slackbuilds/${NAME}-${VERSION}
 mkdir -p $SBDIR
 install -m 644 $CWD/doinst.sh        $SBDIR/doinst.sh
 install -m 644 $CWD/slack-desc       $SBDIR/slack-desc
 install -m 644 $CWD/slack-required   $SBDIR/slack-required
-if [ -e $CWD/$NAME-$VERSION.diff ]; then
-  install -m 644 $CWD/$NAME-$VERSION.diff $SBDIR/$NAME-$VERSION.diff
+if [ -e $CWD/${NAME}-${VERSION}.diff ]; then
+  install -m 644 $CWD/${NAME}-${VERSION}.diff $SBDIR/${NAME}-${VERSION}.diff
 fi
-install -m 644 $CWD/$NAME.SlackBuild $SBDIR/$NAME.SlackBuild
+install -m 644 $CWD/${NAME}.SlackBuild $SBDIR/${NAME}.SlackBuild
 
 # Assemble
 cd $PKG
-PKGNAME=$NAME-$VERSION_FULL-$ARCH-$BUILD$MYIN
-makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
+PKGNAME=${NAME}-${VERSION}-${ARCH}-${BUILD}${MYIN}
+makepkg -l y -c n $PKG_DIR/${PKGNAME}.txz
 cd $PKG_DIR
-md5sum $PKGNAME.txz > $PKGNAME.txz.md5
-cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
+md5sum ${PKGNAME}.txz > ${PKGNAME}.txz.md5
+cat $PKG/install/slack-desc > $PKG_DIR/${PKGNAME}.txt
 
 # Clean up (optionally)
 if [ "$1" == "--cleanup" ]; then
