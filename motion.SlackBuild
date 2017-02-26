@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: motion.SlackBuild,v 1.8 2017/02/26 18:00:11 gsotirov Exp $
+# $Id: motion.SlackBuild,v 1.9 2017/02/26 18:04:53 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -80,7 +80,7 @@ make DESTDIR=$PKG \
      examplesdir=/usr/doc/$NAME-$VERSION/examples \
      install || exit 7
 
-mv $PKG/etc/motion-dist.conf $PKG/etc/motion.conf.new
+mv $PKG/etc/motion/motion-dist.conf $PKG/etc/motion/motion.conf.new
 
 # Prepare
 bin_perms $PKG
