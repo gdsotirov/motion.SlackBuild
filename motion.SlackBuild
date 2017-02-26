@@ -5,7 +5,7 @@
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
-. ../slack-package.conf
+. ../../slack-package.conf
 
 NAME=motion
 VERSION=3.2.12
